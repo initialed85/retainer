@@ -54,7 +54,7 @@ find cmd pkg | entr -n -r -cc -s "TOKEN='sk-rooter-...' LAYA_API_KEY='...' go ru
 | `LAYA_URL` | `https://laya-router.dev.initialed85.cc` | decision endpoint |
 | `TERMS_URL` | `https://sentiment-analyzer.dev.initialed85.cc/v1` | search-term model (OpenAI-compatible base URL) |
 | `TERMS_MODEL` | (none) | optional model override for search terms |
-| `STORE_URL` | `https://graph.dev.initialed85.cc` | graphiti endpoint |
+| `STORE_URL` | `https://graph.dev.initialed85.cc/graphiti/search` | graphiti search endpoint (full URL; in-cluster it is `http://memory-graph.memory.svc.cluster.local:9999/search` because the public ingress strips the `/graphiti` prefix) |
 
 Health: `GET /healthz` answers without a key (kubelet probes).
 

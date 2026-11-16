@@ -1,2 +1,5 @@
 .pi
 /retainer
+
+# CI build artifact; the Docker build whitelists it via .dockerignore
+/tmp/

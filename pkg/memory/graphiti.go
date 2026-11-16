@@ -12,17 +12,20 @@ import (
 
 // GraphitiClient queries the Graphiti memory graph.
 type GraphitiClient struct {
-	baseURL  string
-	maxFacts int
-	http     *http.Client
+	searchURL string
+	maxFacts  int
+	http      *http.Client
 }
 
-// NewGraphitiClient builds a GraphitiClient.
-func NewGraphitiClient(baseURL string, maxFacts int, client *http.Client) *GraphitiClient {
+// NewGraphitiClient builds a GraphitiClient. searchURL is the full URL to POST
+// the search body to; the path is part of the URL rather than a constant here
+// because public deployments sit behind a prefix-stripping ingress (the
+// in-cluster service serves /search, the public host serves /graphiti/search).
+func NewGraphitiClient(searchURL string, maxFacts int, client *http.Client) *GraphitiClient {
 	if client == nil {
 		client = http.DefaultClient
 	}
-	return &GraphitiClient{baseURL: baseURL, maxFacts: maxFacts, http: client}
+	return &GraphitiClient{searchURL: searchURL, maxFacts: maxFacts, http: client}
 }
 
 type searchRequest struct {
@@ -37,7 +40,7 @@ func (c *GraphitiClient) Search(ctx context.Context, query string) (string, erro
 		return "", err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/graphiti/search", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.searchURL, bytes.NewReader(body))
 	if err != nil {
 		return "", err
 	}

@@ -54,7 +54,7 @@ func loadConfig() config {
 		TermsURL:   envOr("TERMS_URL", "https://sentiment-analyzer.dev.initialed85.cc/v1"),
 		TermsModel: os.Getenv("TERMS_MODEL"),
 
-		StoreURL: envOr("STORE_URL", "https://graph.dev.initialed85.cc"),
+		StoreURL: envOr("STORE_URL", "https://graph.dev.initialed85.cc/graphiti/search"),
 	}
 }
 

@@ -21,7 +21,7 @@ func TestGraphitiSearch(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewGraphitiClient(server.URL, 10, server.Client())
+	client := NewGraphitiClient(server.URL+"/graphiti/search", 10, server.Client())
 	raw, err := client.Search(context.Background(), "where is my car?")
 	if err != nil {
 		t.Fatalf("Search: %v", err)
@@ -48,7 +48,7 @@ func TestGraphitiSearchError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewGraphitiClient(server.URL, 10, server.Client())
+	client := NewGraphitiClient(server.URL+"/search", 10, server.Client())
 	_, err := client.Search(context.Background(), "q")
 	if err == nil {
 		t.Fatal("expected error for 500")
