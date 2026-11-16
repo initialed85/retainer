@@ -88,6 +88,7 @@ func (p *Pipeline) Retrieve(ctx context.Context, session, prompt string) (string
 	}
 
 	if injected, ok := p.Cache.Get(session, prompt); ok {
+		p.logf("memory: cache hit, injecting %d bytes", len(injected))
 		return injected, nil
 	}
 
@@ -98,17 +99,27 @@ func (p *Pipeline) Retrieve(ctx context.Context, session, prompt string) (string
 			p.logf("search-term extraction failed: %v", err)
 			return "", nil
 		}
-		if term != "" {
+		if term == "" {
+			p.logf("memory: no search term extracted")
+		} else {
+			p.logf("memory: searching graph with term %q", truncate(term, 80))
 			raw, err := p.Store.Search(ctx, term)
 			if err != nil {
 				p.logf("memory search failed: %v", err)
 				return "", nil
 			}
 			injected = FormatFacts(raw)
-			if injected != "" && !p.includable(ctx, prompt, injected) {
+			if injected == "" {
+				p.logf("memory: search returned no facts")
+			} else if !p.includable(ctx, prompt, injected) {
+				p.logf("memory: include gate rejected the facts")
 				injected = ""
+			} else {
+				p.logf("memory: injecting %d facts", strings.Count(injected, "\n")+1)
 			}
 		}
+	} else {
+		p.logf("memory: search gate skipped the prompt")
 	}
 
 	p.Cache.Put(session, prompt, injected)
@@ -191,6 +202,7 @@ func (p *Pipeline) searchable(ctx context.Context, prompt string) bool {
 		p.logf("laya search gate unavailable: %v", err)
 		return true
 	}
+	p.logf("memory: search gate answered %q", choice)
 	return choice != "yes"
 }
 
@@ -211,6 +223,7 @@ func (p *Pipeline) includable(ctx context.Context, prompt, context string) bool 
 		p.logf("laya context gate unavailable: %v", err)
 		return true
 	}
+	p.logf("memory: include gate answered %q", choice)
 	return choice == "yes"
 }
 
@@ -218,6 +231,16 @@ func (p *Pipeline) logf(format string, args ...any) {
 	if p.Logger != nil {
 		p.Logger.Printf(format, args...)
 	}
+}
+
+// truncate shortens s for log lines so prompts and terms do not blow up the
+// log width.
+func truncate(s string, n int) string {
+	r := []rune(s)
+	if len(r) <= n {
+		return s
+	}
+	return string(r[:n]) + "…"
 }
 
 // messageText extracts the plain text of a message, whether its content is a
